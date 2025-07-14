@@ -5,7 +5,7 @@ on:
     branches: [ "main" ]
 
 env:
-  PROJECT_ID: your-gcp-project-id # ‼️ UPDATE this with your GCP Project ID
+  PROJECT_ID: odyssey123 # ‼️ UPDATE this with your GCP Project ID
   GKE_CLUSTER: odyssey-cluster
   GKE_REGION: australia-southeast1
   GCR_IMAGE_PATH: gcr.io/${{ secrets.GCP_PROJECT_ID }}/entitlements-service
