@@ -5,17 +5,17 @@ on:
     branches: [ "main" ]
 
 env:
-  PROJECT_ID: odyssey123 # ‼️ UPDATE this with your GCP Project ID
+  PROJECT_ID: odyssey123
   GKE_CLUSTER: odyssey-cluster
   GKE_REGION: australia-southeast1
-  GCR_IMAGE_PATH: gcr.io/${{ secrets.GCP_PROJECT_ID }}/entitlements-service
+  # CORRECTED THIS LINE: Use env.PROJECT_ID
+  GCR_IMAGE_PATH: gcr.io/${{ env.PROJECT_ID }}/entitlements-service
 
 jobs:
   build-and-deploy:
     name: Build and Deploy
     runs-on: ubuntu-latest
     
-    # Add 'id-token' with 'write' permission for Workload Identity Federation
     permissions:
       contents: 'read'
       id-token: 'write'
@@ -28,7 +28,8 @@ jobs:
       uses: 'google-github-actions/auth@v1'
       with:
         workload_identity_provider: 'projects/656106947192/locations/global/workloadIdentityPools/github-pool/providers/github-provider'
-        service_account: 'odyssey-sa@${{ env.PROJECT_ID }}.iam.gserviceaccount.com' # ‼️ UPDATE this
+        # CORRECTED THIS LINE: Hardcoded the full service account email for clarity
+        service_account: 'odyssey-sa@odyssey123.iam.gserviceaccount.com'
 
     - name: Set up GKE credentials
       uses: 'google-github-actions/get-gke-credentials@v1'
@@ -38,7 +39,8 @@ jobs:
 
     - name: Authenticate Docker to GCR
       run: |-
-        gcloud auth configure-docker ${{ env.GKE_REGION }}-docker.pkg.dev
+        # Note: GCR is being replaced by Artifact Registry, but this command works for both.
+        gcloud auth configure-docker gcr.io
 
     - name: Build and Push Docker Image
       run: |-
@@ -48,7 +50,7 @@ jobs:
     - name: Set up Helm
       uses: azure/setup-helm@v3
       with:
-        version: 'v3.12.0' # Use a specific version of Helm
+        version: 'v3.12.0'
 
     - name: Deploy with Helm
       run: |-
