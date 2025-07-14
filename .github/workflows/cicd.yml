@@ -27,7 +27,7 @@ jobs:
     - name: Authenticate to Google Cloud
       uses: 'google-github-actions/auth@v1'
       with:
-        workload_identity_provider: 'projects/your-gcp-project-number/locations/global/workloadIdentityPools/github-pool/providers/github-provider' # ‼️ UPDATE this
+        workload_identity_provider: 'projects/656106947192/locations/global/workloadIdentityPools/github-pool/providers/github-provider' # ‼️ UPDATE this
         service_account: 'odyssey-sa@${{ env.PROJECT_ID }}.iam.gserviceaccount.com' # ‼️ UPDATE this
 
     - name: Set up GKE credentials
