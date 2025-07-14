@@ -1,0 +1,27 @@
+replicaCount: 2
+
+image:
+  repository: gcr.io/your-gcp-project-id/entitlements-service # ‼️ IMPORTANT: Replace with your GCR path
+  pullPolicy: IfNotPresent
+  # Overridden by the CI/CD pipeline with the git SHA
+  tag: "latest"
+
+service:
+  type: LoadBalancer
+  port: 80
+
+# Environment variables for the application
+# These will be pulled from a Kubernetes Secret
+env:
+  secretName: spanner-credentials
+
+# Probes to ensure the application is healthy
+livenessProbe:
+  path: /actuator/health/liveness
+  initialDelaySeconds: 45
+  periodSeconds: 15
+
+readinessProbe:
+  path: /actuator/health/readiness
+  initialDelaySeconds: 30
+  periodSeconds: 15
