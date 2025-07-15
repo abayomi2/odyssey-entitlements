@@ -4,33 +4,15 @@ metadata:
   name: entitlements-service
   labels:
     app: entitlements-service
-    # This label is important for Prometheus to discover the service.
-    prometheus: "true"
-  # --- Add this annotations block ---
+  # Add this annotation block
   annotations:
-    prometheus.io/scrape: "true"
-    prometheus.io/path:   "/actuator/prometheus"
-    prometheus.io/port:   "8080"
+    cloud.google.com/backend-config: '{"default": "entitlements-backend-config"}'
 spec:
-  type: {{ .Values.service.type }}
+  type: ClusterIP
   ports:
-    - port: {{ .Values.service.port }}
+    - port: 80
       targetPort: 8080
       protocol: TCP
       name: http
   selector:
     app: entitlements-service
-
-
-# apiVersion: v1
-# kind: Service
-# metadata:
-#   name: entitlements-service
-# spec:
-#   type: {{ .Values.service.type }}
-#   ports:
-#     - port: {{ .Values.service.port }}
-#       targetPort: 8080
-#       protocol: TCP
-#   selector:
-#     app: entitlements-service

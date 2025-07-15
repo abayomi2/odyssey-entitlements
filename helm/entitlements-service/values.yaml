@@ -1,9 +1,14 @@
 replicaCount: 2
 
-image:
-  repository: gcr.io/your-gcp-project-id/entitlements-service # ‼️ IMPORTANT: Replace with your GCR path
-  pullPolicy: IfNotPresent
-  # Overridden by the CI/CD pipeline with the git SHA
+image: # Backend image
+  repository: australia-southeast1-docker.pkg.dev/odyssey123-1752491152/odyssey-repo/entitlements-service
+  pullPolicy: Always
+  tag: "latest"
+
+  # --- Add this new section for the frontend ---
+frontendImage:
+  repository: australia-southeast1-docker.pkg.dev/odyssey123-1752491152/odyssey-repo/frontend-service
+  pullPolicy: Always
   tag: "latest"
 
 service:

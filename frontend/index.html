@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Odyssey Entitlements Platform</title>
+    <script src="https://unpkg.com/vue@3"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="app">
+        <header>
+            <h1>Odyssey Entitlements Platform</h1>
+            <div class="actions">
+                <button @click="ingestData" :disabled="loading">Ingest ASIC Data</button>
+                <button @click="fetchAuditors" :disabled="loading">Refresh Auditors</button>
+            </div>
+        </header>
+        <main>
+            <div v-if="loading" class="loader">Loading...</div>
+            <div v-if="error" class="error">{{ error }}</div>
+            <div v-if="!loading && auditors.length === 0" class="no-data">
+                No auditor data found. Click "Ingest ASIC Data" to load it.
+            </div>
+            <table v-if="auditors.length > 0">
+                <thead>
+                    <tr>
+                        <th>Auditor ID</th>
+                        <th>Registration Number</th>
+                        <th>Name / Company</th>
+                        <th>Registration Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="auditor in auditors">
+                        <td>{{ auditor.auditorId }}</td>
+                        <td>{{ auditor.name }}</td>
+                        <td>{{ auditor.company }}</td>
+                        <td>{{ auditor.registrationDate }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </main>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>

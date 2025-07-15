@@ -1,4 +1,4 @@
-name: Odyssey CI/CD to GKE
+name: Odyssey CI/CD Full-Stack Deployment
 
 on:
   push:
@@ -6,15 +6,15 @@ on:
 
 jobs:
   build-and-deploy:
-    name: Build and Deploy
+    name: Build and Deploy Full Stack
     runs-on: ubuntu-latest
 
     env:
       PROJECT_ID: odyssey123-1752491152
-      GKE_CLUSTER: odyssey-cluster
       GKE_REGION: australia-southeast1
       ARTIFACT_REPO: odyssey-repo
-      IMAGE_NAME: entitlements-service
+      BACKEND_IMAGE_NAME: entitlements-service
+      FRONTEND_IMAGE_NAME: frontend-service
 
     permissions:
       contents: 'read'
@@ -27,33 +27,100 @@ jobs:
     - name: Authenticate to Google Cloud
       uses: 'google-github-actions/auth@v1'
       with:
-        # Correct WIF provider with your project number
         workload_identity_provider: 'projects/805818697248/locations/global/workloadIdentityPools/github-pool/providers/github-provider'
         service_account: 'odyssey-sa@${{ env.PROJECT_ID }}.iam.gserviceaccount.com'
 
     - name: Set up GKE credentials
       uses: 'google-github-actions/get-gke-credentials@v1'
       with:
-        cluster_name: ${{ env.GKE_CLUSTER }}
+        cluster_name: odyssey-cluster
         location: ${{ env.GKE_REGION }}
 
     - name: Authenticate Docker to Artifact Registry
       run: gcloud auth configure-docker ${{ env.GKE_REGION }}-docker.pkg.dev
 
-    - name: Build and Push Docker Image
-      run: |-
-        IMAGE_PATH="${{ env.GKE_REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/${{ env.IMAGE_NAME }}"
+    - name: Build and Push Backend Image
+      run: |
+        IMAGE_PATH="${{ env.GKE_REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/${{ env.BACKEND_IMAGE_NAME }}"
         docker build -t "$IMAGE_PATH:${{ github.sha }}" ./app
         docker push "$IMAGE_PATH:${{ github.sha }}"
 
+    - name: Build and Push Frontend Image
+      run: |
+        IMAGE_PATH="${{ env.GKE_REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/${{ env.FRONTEND_IMAGE_NAME }}"
+        docker build -t "$IMAGE_PATH:${{ github.sha }}" -f ./frontend/Dockerfile ./frontend
+        docker push "$IMAGE_PATH:${{ github.sha }}"
+        
     - name: Set up Helm
       uses: azure/setup-helm@v3
       with:
         version: 'v3.12.0'
 
     - name: Deploy with Helm
-      run: |-
-        IMAGE_PATH="${{ env.GKE_REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/${{ env.IMAGE_NAME }}"
+      run: |
         helm upgrade --install entitlements-service ./helm/entitlements-service \
-          --set image.repository=$IMAGE_PATH \
-          --set image.tag=${{ github.sha }}
+          --set image.tag=${{ github.sha }} \
+          --set frontendImage.tag=${{ github.sha }}
+
+
+
+
+# name: Odyssey CI/CD to GKE
+
+# on:
+#   push:
+#     branches: [ "main" ]
+
+# jobs:
+#   build-and-deploy:
+#     name: Build and Deploy
+#     runs-on: ubuntu-latest
+
+#     env:
+#       PROJECT_ID: odyssey123-1752491152
+#       GKE_CLUSTER: odyssey-cluster
+#       GKE_REGION: australia-southeast1
+#       ARTIFACT_REPO: odyssey-repo
+#       IMAGE_NAME: entitlements-service
+
+#     permissions:
+#       contents: 'read'
+#       id-token: 'write'
+
+#     steps:
+#     - name: Checkout Code
+#       uses: actions/checkout@v3
+
+#     - name: Authenticate to Google Cloud
+#       uses: 'google-github-actions/auth@v1'
+#       with:
+#         # Correct WIF provider with your project number
+#         workload_identity_provider: 'projects/805818697248/locations/global/workloadIdentityPools/github-pool/providers/github-provider'
+#         service_account: 'odyssey-sa@${{ env.PROJECT_ID }}.iam.gserviceaccount.com'
+
+#     - name: Set up GKE credentials
+#       uses: 'google-github-actions/get-gke-credentials@v1'
+#       with:
+#         cluster_name: ${{ env.GKE_CLUSTER }}
+#         location: ${{ env.GKE_REGION }}
+
+#     - name: Authenticate Docker to Artifact Registry
+#       run: gcloud auth configure-docker ${{ env.GKE_REGION }}-docker.pkg.dev
+
+#     - name: Build and Push Docker Image
+#       run: |-
+#         IMAGE_PATH="${{ env.GKE_REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/${{ env.IMAGE_NAME }}"
+#         docker build -t "$IMAGE_PATH:${{ github.sha }}" ./app
+#         docker push "$IMAGE_PATH:${{ github.sha }}"
+
+#     - name: Set up Helm
+#       uses: azure/setup-helm@v3
+#       with:
+#         version: 'v3.12.0'
+
+#     - name: Deploy with Helm
+#       run: |-
+#         IMAGE_PATH="${{ env.GKE_REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/${{ env.IMAGE_NAME }}"
+#         helm upgrade --install entitlements-service ./helm/entitlements-service \
+#           --set image.repository=$IMAGE_PATH \
+#           --set image.tag=${{ github.sha }}
