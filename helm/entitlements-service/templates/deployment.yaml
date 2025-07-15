@@ -18,9 +18,23 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - containerPort: 8080
-          envFrom:
-            - secretRef:
-                name: {{ .Values.env.secretName }}
+
+          env:
+            - name: GOOGLE_APPLICATION_CREDENTIALS
+              value: /etc/gcp/key.json
+            # --- UPDATE THIS VALUE ---
+            - name: GCP_PROJECT_ID
+              value: "odyssey123-1752491152" # <-- Use your new, correct project ID
+            - name: SPANNER_INSTANCE_ID
+              value: "entitlements-instance"
+            - name: SPANNER_DATABASE_ID
+              value: "auditor-db"
+
+          volumeMounts:
+            - name: gcp-sa-key
+              mountPath: /etc/gcp
+              readOnly: true
+
           livenessProbe:
             httpGet:
               path: {{ .Values.livenessProbe.path }}
@@ -33,3 +47,11 @@ spec:
               port: 8080
             initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
             periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
+
+      volumes:
+        - name: gcp-sa-key
+          secret:
+            secretName: {{ .Values.env.secretName }}
+            items:
+              - key: GOOGLE_APPLICATION_CREDENTIALS
+                path: key.json

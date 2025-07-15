@@ -9,12 +9,12 @@ jobs:
     name: Build and Deploy
     runs-on: ubuntu-latest
 
-    # Define environment variables at the job level
     env:
-      PROJECT_ID: odyssey123
+      PROJECT_ID: odyssey123-1752491152
       GKE_CLUSTER: odyssey-cluster
       GKE_REGION: australia-southeast1
-      IMAGE_NAME: entitlements-service # Use a simple image name here
+      ARTIFACT_REPO: odyssey-repo
+      IMAGE_NAME: entitlements-service
 
     permissions:
       contents: 'read'
@@ -27,8 +27,9 @@ jobs:
     - name: Authenticate to Google Cloud
       uses: 'google-github-actions/auth@v1'
       with:
-        workload_identity_provider: 'projects/656106947192/locations/global/workloadIdentityPools/github-pool/providers/github-provider'
-        service_account: 'odyssey-sa@odyssey123.iam.gserviceaccount.com'
+        # Correct WIF provider with your project number
+        workload_identity_provider: 'projects/805818697248/locations/global/workloadIdentityPools/github-pool/providers/github-provider'
+        service_account: 'odyssey-sa@${{ env.PROJECT_ID }}.iam.gserviceaccount.com'
 
     - name: Set up GKE credentials
       uses: 'google-github-actions/get-gke-credentials@v1'
@@ -36,17 +37,14 @@ jobs:
         cluster_name: ${{ env.GKE_CLUSTER }}
         location: ${{ env.GKE_REGION }}
 
-    - name: Authenticate Docker to GCR
-      run: |-
-        gcloud auth configure-docker gcr.io
+    - name: Authenticate Docker to Artifact Registry
+      run: gcloud auth configure-docker ${{ env.GKE_REGION }}-docker.pkg.dev
 
     - name: Build and Push Docker Image
       run: |-
-        # Construct the full image path here
-        GCR_IMAGE_PATH="gcr.io/$PROJECT_ID/$IMAGE_NAME"
-        
-        docker build -t "$GCR_IMAGE_PATH:${{ github.sha }}" ./app
-        docker push "$GCR_IMAGE_PATH:${{ github.sha }}"
+        IMAGE_PATH="${{ env.GKE_REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/${{ env.IMAGE_NAME }}"
+        docker build -t "$IMAGE_PATH:${{ github.sha }}" ./app
+        docker push "$IMAGE_PATH:${{ github.sha }}"
 
     - name: Set up Helm
       uses: azure/setup-helm@v3
@@ -55,9 +53,7 @@ jobs:
 
     - name: Deploy with Helm
       run: |-
-        # Construct the full image path here as well
-        GCR_IMAGE_PATH="gcr.io/$PROJECT_ID/$IMAGE_NAME"
-
+        IMAGE_PATH="${{ env.GKE_REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/${{ env.IMAGE_NAME }}"
         helm upgrade --install entitlements-service ./helm/entitlements-service \
-          --set image.repository=$GCR_IMAGE_PATH \
+          --set image.repository=$IMAGE_PATH \
           --set image.tag=${{ github.sha }}

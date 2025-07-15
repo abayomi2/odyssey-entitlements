@@ -13,9 +13,8 @@ spring:
   # -----------------------------------------------------
   # Google Cloud Platform Configuration
   #
-  # ‼️ IMPORTANT: These values are placeholders. In a real
-  # environment (like GKE), they will be injected as
-  # environment variables from secrets or config maps.
+  # In Kubernetes, these are provided by the deployment.yaml.
+  # The values after the colon (:) are defaults for local development.
   # -----------------------------------------------------
   cloud:
     gcp:
@@ -31,8 +30,7 @@ spring:
     # Sets the endpoint for all GraphQL queries
     path: /graphql
     graphiql:
-      # Enables the GraphiQL UI (e.g., http://localhost:8080/graphiql)
-      # for easy querying during development. Disable in production.
+      # Enables the GraphiQL UI for easy querying during development.
       enabled: true
 
 # -----------------------------------------------------
@@ -42,10 +40,71 @@ management:
   endpoints:
     web:
       exposure:
-        # Exposes the 'prometheus' endpoint for metrics scraping
-        # and 'health' for Kubernetes liveness/readiness probes.
+        # Exposes 'prometheus' for metrics scraping and 'health' for probes.
         include: "prometheus,health"
   endpoint:
     health:
-      # Provides detailed health information from components like the database.
+      # Provides detailed health information.
       show-details: always
+  # --- Metrics Configuration ---
+  metrics:
+    web:
+      server:
+        request:
+          autotime:
+            # Enables the histogram buckets required for latency percentile metrics.
+            percentiles-histogram: true
+
+
+
+# # -----------------------------------------------------
+# # Spring Boot Application Configuration
+# # -----------------------------------------------------
+# server:
+#   # Standard port for containerized applications
+#   port: 8080
+
+# spring:
+#   application:
+#     # Service name used for identification in logs and metrics
+#     name: entitlements-service
+
+#   # -----------------------------------------------------
+#   # Google Cloud Platform Configuration
+#   #
+#   # ‼️ IMPORTANT: These values are placeholders. In a real
+#   # environment (like GKE), they will be injected as
+#   # environment variables from secrets or config maps.
+#   # -----------------------------------------------------
+#   cloud:
+#     gcp:
+#       project-id: ${GCP_PROJECT_ID:your-local-gcp-project-id}
+#       spanner:
+#         instance-id: ${SPANNER_INSTANCE_ID:entitlements-instance}
+#         database: ${SPANNER_DATABASE_ID:auditor-db}
+
+#   # -----------------------------------------------------
+#   # GraphQL Configuration
+#   # -----------------------------------------------------
+#   graphql:
+#     # Sets the endpoint for all GraphQL queries
+#     path: /graphql
+#     graphiql:
+#       # Enables the GraphiQL UI (e.g., http://localhost:8080/graphiql)
+#       # for easy querying during development. Disable in production.
+#       enabled: true
+
+# # -----------------------------------------------------
+# # Management & Observability (Spring Boot Actuator)
+# # -----------------------------------------------------
+# management:
+#   endpoints:
+#     web:
+#       exposure:
+#         # Exposes the 'prometheus' endpoint for metrics scraping
+#         # and 'health' for Kubernetes liveness/readiness probes.
+#         include: "prometheus,health"
+#   endpoint:
+#     health:
+#       # Provides detailed health information from components like the database.
+#       show-details: always

@@ -7,9 +7,9 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Data // Generates getters, setters, toString, etc.
-@AllArgsConstructor // Generates a constructor with all arguments.
-@NoArgsConstructor // Generates a no-argument constructor.
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
 @Table(name = "Auditors")
 public class Auditor {
 
@@ -17,10 +17,13 @@ public class Auditor {
     @Column(name = "AuditorId")
     private String auditorId;
 
+    // Add annotations to match the database schema
+    @Column(name = "Name")
     private String name;
 
+    @Column(name = "Company")
     private String company;
 
-    // This field will hold the date as a string from the CSV.
+    @Column(name = "RegistrationDate")
     private String registrationDate;
 }

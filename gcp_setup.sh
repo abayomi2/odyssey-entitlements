@@ -1,8 +1,9 @@
+
 #!/bin/bash
 set -e # Exit immediately if a command fails
 
 # --- Configuration ---
-export PROJECT_ID="odyssey123"
+export PROJECT_ID="odyssey123-1752491152"
 # --- End of Configuration ---
 
 export GKE_CLUSTER_NAME="odyssey-cluster"
